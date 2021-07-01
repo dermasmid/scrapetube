@@ -1,7 +1,7 @@
 from setuptools import setup
+from list_youtube_channel import __version__
 
 
-version = '1.0.0'
 
 
 with open('README.md', encoding='utf-8') as f:
@@ -12,7 +12,7 @@ with open('requirements.txt', encoding='utf-8') as f:
 
 setup(
     name = 'list_youtube_channel',
-    version = version,
+    version = __version__,
     packages = ['list_youtube_channel'],
     include_package_data = True,
     url = 'https://github.com/dermasmid/list_youtube_channel',

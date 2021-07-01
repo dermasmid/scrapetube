@@ -4,14 +4,18 @@ import json
 import time
 
 
-def get_channel(channel_id: str, limit: int = None, sleep: int = 1) -> Generator:
+SORT_BY_NEWEST = 'newest'
+SORT_BY_OLDEST = 'oldest'
+SORT_BY_POPULAR = 'popular'
+
+def get_channel(channel_id: str, limit: int = None, sleep: int = 1, sort_by: str = SORT_BY_NEWEST) -> Generator:
     session = requests.Session()
     session.headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.101 Safari/537.36'
     is_first = True
     count = 0
     while True:
         if is_first:
-            html = get_initial_data(channel_id, session)
+            html = get_initial_data(session, channel_id, sort_by)
             client = json.loads(get_json_from_html(
                 html, 'INNERTUBE_CONTEXT', 2, '"}},') + '"}}')['client']
             api_key = get_json_from_html(html, 'innertubeApiKey', 3)
@@ -37,13 +41,17 @@ def get_channel(channel_id: str, limit: int = None, sleep: int = 1) -> Generator
         time.sleep(sleep)
 
 
-def get_initial_data(channel_id: str, session: requests.Session) -> str:
-    response = session.get(
-        f'https://www.youtube.com/channel/{channel_id}/videos')
+def get_initial_data(session: requests.Session, channel_id: str, sort_by: str) -> str:
+    sort_by_map = {
+        SORT_BY_NEWEST: 'dd',
+        SORT_BY_OLDEST: 'da',
+        SORT_BY_POPULAR: 'p'
+    }
+    url = f'https://www.youtube.com/channel/{channel_id}/videos?view=0&sort={sort_by_map[sort_by]}&flow=grid'
+    response = session.get(url)
     if 'uxe=' in response.request.url:
         session.cookies.set('CONSENT', 'YES+cb', domain='.youtube.com')
-        response = session.get(
-            f'https://www.youtube.com/channel/{channel_id}/videos')
+        response = session.get(url)
 
     html = response.text
     return html

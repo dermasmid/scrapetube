@@ -1,3 +1,3 @@
-from .get_channel import get_channel, SORT_BY_NEWEST, SORT_BY_OLDEST, SORT_BY_POPULAR
+from .get_channel import get_channel, get_search, get_playlist
 
-__version__ = '1.1.0'
+__version__ = '2.0.0'

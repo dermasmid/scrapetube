@@ -2,3 +2,6 @@
 build/
 dist/
 *.egg-info/
+.vscode
+docs/_build/
+docs/source/_build

@@ -46,3 +46,7 @@ videos = list_youtube_channel.get_search("python")
 for video in videos:
     print(video['videoId'])
 ```
+
+# Full Documentation
+
+[https://list-youtube-channel.readthedocs.io/en/latest/](https://list-youtube-channel.readthedocs.io/en/latest/)

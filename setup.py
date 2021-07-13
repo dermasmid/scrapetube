@@ -1,5 +1,5 @@
 from setuptools import setup
-from list_youtube_channel import __version__
+from scrapetube import __version__
 
 
 
@@ -11,18 +11,18 @@ with open('requirements.txt', encoding='utf-8') as f:
     requirements = [r.strip() for r in f]
 
 setup(
-    name = 'list_youtube_channel',
+    name = 'scrapetube',
     version = __version__,
-    packages = ['list_youtube_channel'],
+    packages = ['scrapetube'],
     include_package_data = True,
-    url = 'https://github.com/dermasmid/list_youtube_channel',
+    url = 'https://github.com/dermasmid/scrapetube',
     license = 'MIT',
     long_description = readme,
     long_description_content_type = 'text/markdown',
     author = 'Cheskel Twersky',
     author_email = 'twerskycheskel@gmail.com',
-    description = 'Get all videos for a Youtube channel',
-    keywords = 'youtube python channel videos list get',
+    description = 'Scrape youtube without the official youtube api and without selenium',
+    keywords = 'youtube python channel videos search playlist list get',
     classifiers = [
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",

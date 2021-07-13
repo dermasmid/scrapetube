@@ -2,10 +2,10 @@
 import os
 import sys
 sys.path.insert(0, os.path.abspath('../'))
-from list_youtube_channel import __version__ as release
+from scrapetube import __version__ as release
 
 
-project = 'List youtube channel'
+project = 'Scrapetube'
 copyright = '2021, Cheskel Twersky'
 author = 'Cheskel Twersky'
 

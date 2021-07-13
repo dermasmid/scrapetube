@@ -1,5 +1,5 @@
-# List Yuotube channel
-This module was originally made to get a list of all the videos from a Youtube channel, but was then extended to include some other functionality.
+# Scrapetube
+This module will help you scrape youtube without the official youtube api and without selenium.
 
 With this module you can:
 
@@ -11,7 +11,7 @@ With this module you can:
 # Installation
 
 ```bash
-pip3 install list_youtube_channel
+pip3 install scrapetube
 ```
 
 # Usage
@@ -19,9 +19,9 @@ Here a few short code examples.
 
 ## Get all videos for a channel
 ```python
-import list_youtube_channel
+import scrapetube
 
-videos = list_youtube_channel.get_channel("UCCezIgC97PvUuR4_gbFUs5g")
+videos = scrapetube.get_channel("UCCezIgC97PvUuR4_gbFUs5g")
 
 for video in videos:
     print(video['videoId'])
@@ -29,9 +29,9 @@ for video in videos:
 
 ## Get all videos for a playlist
 ```python
-import list_youtube_channel
+import scrapetube
 
-videos = list_youtube_channel.get_playlist("PL-osiE80TeTt2d9bfVyTiXJA-UTHn6WwU")
+videos = scrapetube.get_playlist("PL-osiE80TeTt2d9bfVyTiXJA-UTHn6WwU")
 
 for video in videos:
     print(video['videoId'])
@@ -39,9 +39,9 @@ for video in videos:
 
 ## Make a search
 ```python
-import list_youtube_channel
+import scrapetube
 
-videos = list_youtube_channel.get_search("python")
+videos = scrapetube.get_search("python")
 
 for video in videos:
     print(video['videoId'])
@@ -49,4 +49,4 @@ for video in videos:
 
 # Full Documentation
 
-[https://list-youtube-channel.readthedocs.io/en/latest/](https://list-youtube-channel.readthedocs.io/en/latest/)
+[https://scrapetube.readthedocs.io/en/latest/](https://scrapetube.readthedocs.io/en/latest/)

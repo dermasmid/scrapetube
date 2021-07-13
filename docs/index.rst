@@ -1,7 +1,7 @@
 
-Welcome to List youtube channel's documentation!
+Welcome to Scrapetube's documentation!
 ================================================
-This module was originally made to get a list of all the videos from a Youtube channel, but was then extended to include some other functionality.
+This module will help you scrape youtube without the official youtube api and without selenium.
 
 With this module you can:
 
@@ -13,7 +13,7 @@ With this module you can:
 
 Reference
 =========
-.. currentmodule:: list_youtube_channel
+.. currentmodule:: scrapetube
 
 .. autofunction:: get_channel
 

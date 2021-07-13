@@ -4,7 +4,7 @@ import json
 import time
 
 
-def get_channel(channel_id: str, limit: int = None, sleep: int = 1, sort_by: str = 'newest') -> Generator:
+def get_channel(channel_id: str, limit: int = None, sleep: int = 1, sort_by: str = 'newest') -> Generator[dict, None, None]:
     """Get videos for a channel.
 
     Parameters:
@@ -34,7 +34,7 @@ def get_channel(channel_id: str, limit: int = None, sleep: int = 1, sort_by: str
         yield video
 
 
-def get_playlist(playlist_id: str, limit: int = None, sleep: int = 1):
+def get_playlist(playlist_id: str, limit: int = None, sleep: int = 1) -> Generator[dict, None, None]:
     """Get videos for a playlist.
 
     Parameters:
@@ -53,7 +53,7 @@ def get_playlist(playlist_id: str, limit: int = None, sleep: int = 1):
         yield video
 
 
-def get_search(query: str, limit: int = None, sleep: int = 1, sort_by: str = 'relevance', results_type: str = 'video') -> Generator:
+def get_search(query: str, limit: int = None, sleep: int = 1, sort_by: str = 'relevance', results_type: str = 'video') -> Generator[dict, None, None]:
     """Search youtube and get videos.
 
     Parameters:
@@ -71,9 +71,9 @@ def get_search(query: str, limit: int = None, sleep: int = 1, sort_by: str = 're
             ``"rating"``: Get videos with more likes first.
             Defaults to ``"relevance"``.
         results_type (``str``, *optional*):
-            What type you want to search for. Pass one of the following values.
-            ``"video"``|``"channel"``|``"playlist"``|``"movie"``
-            Defaults to `"video"`.
+            What type you want to search for. Pass one of the following values:
+            ``"video"|"channel"|"playlist"|"movie"``.
+            Defaults to ``"video"``.
     """
 
     sort_by_map = {
@@ -98,7 +98,7 @@ def get_search(query: str, limit: int = None, sleep: int = 1, sort_by: str = 're
         yield video
 
 
-def get_videos(url: str, api_endpoint: str, selector: str, limit: int, sleep: int) -> Generator:
+def get_videos(url: str, api_endpoint: str, selector: str, limit: int, sleep: int) -> Generator[dict, None, None]:
     session = requests.Session()
     session.headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.101 Safari/537.36'
     is_first = True
@@ -168,7 +168,7 @@ def get_next_data(data: dict) -> dict:
     return next_data
 
 
-def search_dict(partial: dict, search_key: str) -> Generator:
+def search_dict(partial: dict, search_key: str) -> Generator[dict, None, None]:
     stack = [partial]
     while stack:
         current_item = stack.pop(0)
@@ -183,5 +183,5 @@ def search_dict(partial: dict, search_key: str) -> Generator:
                 stack.append(value)
 
 
-def get_videos_items(data: dict, selector: str) -> Generator:
+def get_videos_items(data: dict, selector: str) -> Generator[dict, None, None]:
     return search_dict(data, selector)

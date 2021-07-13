@@ -1,5 +1,5 @@
 # List Yuotube channel
-This module was originally made to get a list of all the videos from a Yuotube channle, but was then extended to include some other functionality.
+This module was originally made to get a list of all the videos from a Youtube channel, but was then extended to include some other functionality.
 
 With this module you can:
 

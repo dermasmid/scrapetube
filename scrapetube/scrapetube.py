@@ -4,12 +4,24 @@ import json
 import time
 
 
-def get_channel(channel_id: str, limit: int = None, sleep: int = 1, sort_by: str = 'newest') -> Generator[dict, None, None]:
+def get_channel(
+    channel_id: str = None,
+    channel_url: str = None,
+    limit: int = None,
+    sleep: int = 1,
+    sort_by: str = 'newest'
+    ) -> Generator[dict, None, None]:
+
     """Get videos for a channel.
 
     Parameters:
-        channel_id (``str``):
+        channel_id (``str``, *optional*):
             The channel id from the channel you want to get the videos for.
+            If you prefer to use the channel url instead, see ``channel_url`` below.
+        channel_url (``str``, *optional*):
+            The url to the channel you want to get the videos for.
+            Since there is a few type's of channel url's, you can use the one you want
+            by passing it here instead of using ``channel_id``.
         limit (``int``, *optional*):
             Limit to number of videos you want to get.
         sleep (``int``, *optional*):
@@ -27,7 +39,10 @@ def get_channel(channel_id: str, limit: int = None, sleep: int = 1, sort_by: str
         'oldest': 'da',
         'popular': 'p'
     }
-    url = f'https://www.youtube.com/channel/{channel_id}/videos?view=0&sort={sort_by_map[sort_by]}&flow=grid'
+    url = '{url}/videos?view=0&sort={sort_by}&flow=grid'.format(
+        url= channel_url or f'https://www.youtube.com/channel/{channel_id}',
+        sort_by= sort_by_map[sort_by]
+        )
     api_endpoint = 'https://www.youtube.com/youtubei/v1/browse'
     videos = get_videos(url, api_endpoint, 'gridVideoRenderer', limit, sleep)
     for video in videos:

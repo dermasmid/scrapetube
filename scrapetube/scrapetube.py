@@ -23,9 +23,9 @@ def get_channel(
             Since there is a few type's of channel url's, you can use the one you want
             by passing it here instead of using ``channel_id``.
         limit (``int``, *optional*):
-            Limit to number of videos you want to get.
+            Limit the number of videos you want to get.
         sleep (``int``, *optional*):
-            Time to sleep between api calls to youtube in order to prevent getting blocked. Defaults to `1`.
+            Seconds to sleep between API calls to youtube, in order to prevent getting blocked. Defaults to ``1``.
         sort_by (``str``, *optional*):
             In what order to retrive to videos. Pass one of the following values.
             ``"newest"``: Get the new videos first.
@@ -56,9 +56,9 @@ def get_playlist(playlist_id: str, limit: int = None, sleep: int = 1) -> Generat
         playlist_id (``str``):
             The playlist id from the playlist you want to get the videos for.
         limit (``int``, *optional*):
-            Limit to number of videos you want to get.
+            Limit the number of videos you want to get.
         sleep (``int``, *optional*):
-            Time to sleep between api calls to youtube in order to prevent getting blocked. Defaults to `1`.
+            Seconds to sleep between API calls to youtube, in order to prevent getting blocked. Defaults to ``1``.
     """
 
     url = f'https://www.youtube.com/playlist?list={playlist_id}'
@@ -75,9 +75,9 @@ def get_search(query: str, limit: int = None, sleep: int = 1, sort_by: str = 're
         query (``str``):
             The term you want to search for.
         limit (``int``, *optional*):
-            Limit to number of videos you want to get.
+            Limit the number of videos you want to get.
         sleep (``int``, *optional*):
-            Time to sleep between api calls to youtube in order to prevent getting blocked. Defaults to `1`.
+            Seconds to sleep between API calls to youtube, in order to prevent getting blocked. Defaults to ``1``.
         sort_by (``str``, *optional*):
             In what order to retrive to videos. Pass one of the following values.
             ``"relevance"``: Get the new videos in order of relevance.

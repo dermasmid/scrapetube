@@ -15,7 +15,7 @@ pip3 install scrapetube
 ```
 
 # Usage
-Here a few short code examples.
+Here's a few short code examples.
 
 ## Get all videos for a channel
 ```python

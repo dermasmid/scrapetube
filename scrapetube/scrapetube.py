@@ -1,4 +1,4 @@
-from typing import Generator
+from typing import Generator, Literal
 import requests
 import json
 import time
@@ -9,7 +9,7 @@ def get_channel(
     channel_url: str = None,
     limit: int = None,
     sleep: int = 1,
-    sort_by: str = 'newest'
+    sort_by: Literal['newest', 'oldest', 'popular'] = 'newest'
     ) -> Generator[dict, None, None]:
 
     """Get videos for a channel.
@@ -68,7 +68,14 @@ def get_playlist(playlist_id: str, limit: int = None, sleep: int = 1) -> Generat
         yield video
 
 
-def get_search(query: str, limit: int = None, sleep: int = 1, sort_by: str = 'relevance', results_type: str = 'video') -> Generator[dict, None, None]:
+def get_search(
+    query: str,
+    limit: int = None,
+    sleep: int = 1,
+    sort_by: Literal['relevance', 'upload_date', 'view_count', 'rating'] = 'relevance',
+    results_type: Literal['video', 'channel', 'playlist', 'movie'] = 'video'
+    ) -> Generator[dict, None, None]:
+
     """Search youtube and get videos.
 
     Parameters:

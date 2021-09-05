@@ -117,6 +117,7 @@ def get_videos(url: str, api_endpoint: str, selector: str, limit: int, sleep: in
     session = requests.Session()
     session.headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.101 Safari/537.36'
     is_first = True
+    quit = False
     count = 0
     while True:
         if is_first:
@@ -134,16 +135,22 @@ def get_videos(url: str, api_endpoint: str, selector: str, limit: int, sleep: in
             data = get_ajax_data(session, api_endpoint, api_key, next_data, client)
             next_data = get_next_data(data)
         for result in get_videos_items(data, selector):
-            count += 1
-            yield result
-            if count == limit:
+            try:
+                count += 1
+                yield result
+                if count == limit:
+                    quit = True
+                    break
+            except GeneratorExit:
+                quit = True
                 break
 
-        if not next_data or count == limit:
+        if not next_data or quit:
             break
 
         time.sleep(sleep)
 
+    session.close()
 
 def get_initial_data(session: requests.Session, url: str) -> str:
     response = session.get(url)

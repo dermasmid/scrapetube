@@ -1,36 +1,35 @@
-from setuptools import setup
 import re
+
+from setuptools import setup
 
 with open("scrapetube/__init__.py", encoding="utf-8") as f:
     version = re.findall(r"__version__ = \"(.+)\"", f.read())[0]
 
-with open('README.md', encoding='utf-8') as f:
+with open("README.md", encoding="utf-8") as f:
     readme = f.read()
 
-with open('requirements.txt', encoding='utf-8') as f:
+with open("requirements.txt", encoding="utf-8") as f:
     requirements = [r.strip() for r in f]
 
 setup(
-    name = 'scrapetube',
-    version = version,
-    packages = ['scrapetube'],
-    include_package_data = True,
-    url = 'https://github.com/dermasmid/scrapetube',
-    license = 'MIT',
-    long_description = readme,
-    long_description_content_type = 'text/markdown',
-    author = 'Cheskel Twersky',
-    author_email = 'twerskycheskel@gmail.com',
-    description = 'Scrape youtube without the official youtube api and without selenium.',
-    keywords = 'youtube python channel videos search playlist list get',
-    classifiers = [
+    name="scrapetube",
+    version=version,
+    packages=["scrapetube"],
+    include_package_data=True,
+    url="https://github.com/dermasmid/scrapetube",
+    license="MIT",
+    long_description=readme,
+    long_description_content_type="text/markdown",
+    author="Cheskel Twersky",
+    author_email="twerskycheskel@gmail.com",
+    description="Scrape youtube without the official youtube api and without selenium.",
+    keywords="youtube python channel videos search playlist list get",
+    classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    project_urls={
-        'Documentation': 'https://scrapetube.readthedocs.io/en/latest/'
-    },
-    install_requires = requirements,
-    python_requires = '>=3.6',
+    project_urls={"Documentation": "https://scrapetube.readthedocs.io/en/latest/"},
+    install_requires=requirements,
+    python_requires=">=3.6",
 )

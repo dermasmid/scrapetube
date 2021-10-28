@@ -1,8 +1,8 @@
 from setuptools import setup
-from scrapetube import __version__
+import re
 
-
-
+with open("scrapetube/__init__.py", encoding="utf-8") as f:
+    version = re.findall(r"__version__ = \"(.+)\"", f.read())[0]
 
 with open('README.md', encoding='utf-8') as f:
     readme = f.read()
@@ -12,7 +12,7 @@ with open('requirements.txt', encoding='utf-8') as f:
 
 setup(
     name = 'scrapetube',
-    version = __version__,
+    version = version,
     packages = ['scrapetube'],
     include_package_data = True,
     url = 'https://github.com/dermasmid/scrapetube',

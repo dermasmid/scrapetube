@@ -1,7 +1,9 @@
-from typing import Generator, Literal
-import requests
 import json
 import time
+from typing import Generator
+
+import requests
+from typing_extensions import Literal
 
 
 def get_channel(

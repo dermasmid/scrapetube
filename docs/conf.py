@@ -2,9 +2,10 @@ import os
 import sys
 
 sys.path.insert(0, os.path.abspath("../"))
-from scrapetube import __version__ as release
+from scrapetube import __version__
 
 
+version = __version__
 project = "Scrapetube"
 copyright = "2021, Cheskel Twersky"
 author = "Cheskel Twersky"

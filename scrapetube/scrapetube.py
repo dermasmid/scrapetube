@@ -20,20 +20,24 @@ def get_channel(
         channel_id (``str``, *optional*):
             The channel id from the channel you want to get the videos for.
             If you prefer to use the channel url instead, see ``channel_url`` below.
+
         channel_url (``str``, *optional*):
             The url to the channel you want to get the videos for.
             Since there is a few type's of channel url's, you can use the one you want
             by passing it here instead of using ``channel_id``.
+
         limit (``int``, *optional*):
             Limit the number of videos you want to get.
+
         sleep (``int``, *optional*):
-            Seconds to sleep between API calls to youtube, in order to prevent getting blocked. Defaults to ``1``.
+            Seconds to sleep between API calls to youtube, in order to prevent getting blocked.
+            Defaults to 1.
+
         sort_by (``str``, *optional*):
-            In what order to retrive to videos. Pass one of the following values.
+            In what order to retrieve to videos. Pass one of the following values.
             ``"newest"``: Get the new videos first.
             ``"oldest"``: Get the old videos first.
-            ``"popular"``: Get the popular videos first.
-            Defaults to ``"newest"``.
+            ``"popular"``: Get the popular videos first. Defaults to "newest".
     """
 
     sort_by_map = {"newest": "dd", "oldest": "da", "popular": "p"}
@@ -50,15 +54,19 @@ def get_channel(
 def get_playlist(
     playlist_id: str, limit: int = None, sleep: int = 1
 ) -> Generator[dict, None, None]:
+
     """Get videos for a playlist.
 
     Parameters:
         playlist_id (``str``):
             The playlist id from the playlist you want to get the videos for.
+
         limit (``int``, *optional*):
             Limit the number of videos you want to get.
+
         sleep (``int``, *optional*):
-            Seconds to sleep between API calls to youtube, in order to prevent getting blocked. Defaults to ``1``.
+            Seconds to sleep between API calls to youtube, in order to prevent getting blocked.
+            Defaults to 1.
     """
 
     url = f"https://www.youtube.com/playlist?list={playlist_id}"
@@ -81,21 +89,25 @@ def get_search(
     Parameters:
         query (``str``):
             The term you want to search for.
+
         limit (``int``, *optional*):
             Limit the number of videos you want to get.
+
         sleep (``int``, *optional*):
-            Seconds to sleep between API calls to youtube, in order to prevent getting blocked. Defaults to ``1``.
+            Seconds to sleep between API calls to youtube, in order to prevent getting blocked.
+            Defaults to 1.
+
         sort_by (``str``, *optional*):
-            In what order to retrive to videos. Pass one of the following values.
+            In what order to retrieve to videos. Pass one of the following values.
             ``"relevance"``: Get the new videos in order of relevance.
             ``"upload_date"``: Get the new videos first.
             ``"view_count"``: Get the popular videos first.
             ``"rating"``: Get videos with more likes first.
-            Defaults to ``"relevance"``.
+            Defaults to "relevance".
+
         results_type (``str``, *optional*):
             What type you want to search for. Pass one of the following values:
-            ``"video"|"channel"|"playlist"|"movie"``.
-            Defaults to ``"video"``.
+            ``"video"|"channel"|"playlist"|"movie"``. Defaults to "video".
     """
 
     sort_by_map = {

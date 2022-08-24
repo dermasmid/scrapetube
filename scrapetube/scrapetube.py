@@ -181,7 +181,6 @@ def get_videos(
 
 
 def get_initial_data(session: requests.Session, url: str) -> str:
-    response = session.get(url)
     session.cookies.set("CONSENT", "YES+cb", domain=".youtube.com")
     response = session.get(url)
 

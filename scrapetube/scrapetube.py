@@ -181,10 +181,8 @@ def get_videos(
 
 
 def get_initial_data(session: requests.Session, url: str) -> str:
+    session.cookies.set("CONSENT", "YES+cb", domain=".youtube.com")
     response = session.get(url)
-    if "uxe=" in response.request.url:
-        session.cookies.set("CONSENT", "YES+cb", domain=".youtube.com")
-        response = session.get(url)
 
     html = response.text
     return html

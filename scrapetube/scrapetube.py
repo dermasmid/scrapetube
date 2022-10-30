@@ -12,6 +12,7 @@ def get_channel(
     limit: int = None,
     sleep: int = 1,
     sort_by: Literal["newest", "oldest", "popular"] = "newest",
+    filter: Literal["uploads", "past_streams", "future_streams"] = "uploads"
 ) -> Generator[dict, None, None]:
 
     """Get videos for a channel.
@@ -38,12 +39,21 @@ def get_channel(
             ``"newest"``: Get the new videos first.
             ``"oldest"``: Get the old videos first.
             ``"popular"``: Get the popular videos first. Defaults to "newest".
+
+        filter_type (``str``, *optional*):
+            What type of videos to retrieve. Pass one of these allowed values:
+            ``"uploads"``: Get all public channel uploads.
+            ``"past_streams"``: Get all past public livestreams.
+            ``"future_streams"``: Get all visible future livestreams.
+            Defaults to "uploads".
     """
 
     sort_by_map = {"newest": "dd", "oldest": "da", "popular": "p"}
-    url = "{url}/videos?view=0&sort={sort_by}&flow=grid".format(
+    filter_by_map = {"uploads": "0", "past_streams": "2&live_view=503", "future_streams": "2&live_view=502"}
+    url = "{url}/videos?view={filter_by}&sort={sort_by}&flow=grid".format(
         url=channel_url or f"https://www.youtube.com/channel/{channel_id}",
         sort_by=sort_by_map[sort_by],
+        filter_by=filter_by_map[filter]
     )
     api_endpoint = "https://www.youtube.com/youtubei/v1/browse"
     videos = get_videos(url, api_endpoint, "gridVideoRenderer", limit, sleep)

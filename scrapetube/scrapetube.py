@@ -46,7 +46,7 @@ def get_channel(
         sort_by=sort_by_map[sort_by],
     )
     api_endpoint = "https://www.youtube.com/youtubei/v1/browse"
-    videos = get_videos(url, api_endpoint, "gridVideoRenderer", limit, sleep)
+    videos = get_videos(url, api_endpoint, "videoRenderer", limit, sleep)
     for video in videos:
         yield video
 

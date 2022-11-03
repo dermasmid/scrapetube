@@ -12,6 +12,7 @@ def get_channel(
     limit: int = None,
     sleep: int = 1,
     sort_by: Literal["newest", "oldest", "popular"] = "newest",
+    content_type: Literal["videos", "streams"] = "videos"
 ) -> Generator[dict, None, None]:
 
     """Get videos for a channel.
@@ -38,12 +39,19 @@ def get_channel(
             ``"newest"``: Get the new videos first.
             ``"oldest"``: Get the old videos first.
             ``"popular"``: Get the popular videos first. Defaults to "newest".
+
+        content_type (``str``, *optional*):
+            What type of videos to retrieve. Pass one of these allowed values:
+            ``"videos"``: Get all public videos uploads from the channel.
+            ``"streams"``: Get all public livestreams from the channel.
+            Defaults to "videos".
     """
 
     sort_by_map = {"newest": "dd", "oldest": "da", "popular": "p"}
-    url = "{url}/videos?view=0&sort={sort_by}&flow=grid".format(
+    url = "{url}/{type}&sort={sort_by}&flow=grid".format(
         url=channel_url or f"https://www.youtube.com/channel/{channel_id}",
         sort_by=sort_by_map[sort_by],
+        type=content_type
     )
     api_endpoint = "https://www.youtube.com/youtubei/v1/browse"
     videos = get_videos(url, api_endpoint, "videoRenderer", limit, sleep)

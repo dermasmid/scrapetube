@@ -5,6 +5,11 @@ from typing import Generator
 import requests
 from typing_extensions import Literal
 
+type_property_map = {
+    "videos": "videoRenderer",
+    "streams": "videoRenderer",
+    "shorts": "reelItemRenderer"
+}
 
 def get_channel(
     channel_id: str = None,
@@ -12,6 +17,7 @@ def get_channel(
     limit: int = None,
     sleep: int = 1,
     sort_by: Literal["newest", "oldest", "popular"] = "newest",
+    content_type: Literal["videos", "shorts", "streams"] = "videos",
 ) -> Generator[dict, None, None]:
 
     """Get videos for a channel.
@@ -38,15 +44,22 @@ def get_channel(
             ``"newest"``: Get the new videos first.
             ``"oldest"``: Get the old videos first.
             ``"popular"``: Get the popular videos first. Defaults to "newest".
+
+        content_type (``str``, *optional*):
+            In order to get content type. Pass one of the following values.
+            ``"videos"``: Videos
+            ``"shorts"``: Shorts
+            ``"streams"``: Streams
     """
 
-    sort_by_map = {"newest": "dd", "oldest": "da", "popular": "p"}
-    url = "{url}/videos?view=0&sort={sort_by}&flow=grid".format(
+    sort_by_map = {"newest": "dd", "oldest": "da", "popular": "p"}    
+    url = "{url}/{content_type}?view=0&sort={sort_by}&flow=grid".format(
         url=channel_url or f"https://www.youtube.com/channel/{channel_id}",
+        content_type=content_type,
         sort_by=sort_by_map[sort_by],
     )
     api_endpoint = "https://www.youtube.com/youtubei/v1/browse"
-    videos = get_videos(url, api_endpoint, "videoRenderer", limit, sleep)
+    videos = get_videos(url, api_endpoint, type_property_map[content_type], limit, sleep)
     for video in videos:
         yield video
 

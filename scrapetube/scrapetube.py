@@ -52,9 +52,9 @@ def get_channel(
             ``"streams"``: Streams
     """
 
-    sort_by_map = {"newest": "dd", "oldest": "da", "popular": "p"}    
+    sort_by_map = {"newest": "dd", "oldest": "da", "popular": "p"}
     url = "{url}/{content_type}?view=0&sort={sort_by}&flow=grid".format(
-        url=channel_url or f"https://www.youtube.com/channel/{channel_id}",
+        url=channel_url or f"https://www.youtube.com/{channel_id}",
         content_type=content_type,
         sort_by=sort_by_map[sort_by],
     )
@@ -160,6 +160,8 @@ def get_videos(
     while True:
         if is_first:
             html = get_initial_data(session, url)
+            if not html:
+                break
             client = json.loads(
                 get_json_from_html(html, "INNERTUBE_CONTEXT", 2, '"}},') + '"}}'
             )["client"]
@@ -196,9 +198,10 @@ def get_videos(
 def get_initial_data(session: requests.Session, url: str) -> str:
     session.cookies.set("CONSENT", "YES+cb", domain=".youtube.com")
     response = session.get(url)
-
-    html = response.text
-    return html
+    if response.ok:
+        html = response.text
+        return html
+    return ""
 
 
 def get_ajax_data(

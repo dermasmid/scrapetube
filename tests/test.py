@@ -1,14 +1,8 @@
 import sys
 import os
-import platform
-
-if platform.system() == "Windows":
-    separator = "\\"
-else:
-    separator = "/"
 
 sys.path.insert(
-    0, "/".join(os.path.dirname(os.path.realpath(__file__)).split(separator)[:-1])
+    0, "/".join(os.path.dirname(os.path.realpath(__file__)).split(os.sep)[:-1])
 )
 
 import scrapetube

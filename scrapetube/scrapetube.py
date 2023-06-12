@@ -14,6 +14,7 @@ type_property_map = {
 def get_channel(
     channel_id: str = None,
     channel_url: str = None,
+    channel_username: str = None,
     limit: int = None,
     sleep: int = 1,
     sort_by: Literal["newest", "oldest", "popular"] = "newest",
@@ -31,6 +32,11 @@ def get_channel(
             The url to the channel you want to get the videos for.
             Since there is a few type's of channel url's, you can use the one you want
             by passing it here instead of using ``channel_id``.
+
+        channel_username (``str``, *optional*):
+            The username from the channel you want to get the videos for.
+            Ex. ``LinusTechTips`` (without the @).
+            If you prefer to use the channel url instead, see ``channel_url`` above.
 
         limit (``int``, *optional*):
             Limit the number of videos you want to get.
@@ -52,9 +58,18 @@ def get_channel(
             ``"streams"``: Streams
     """
 
-    sort_by_map = {"newest": "dd", "oldest": "da", "popular": "p"}    
-    url = "{url}/{content_type}?view=0&sort={sort_by}&flow=grid".format(
-        url=channel_url or f"https://www.youtube.com/channel/{channel_id}",
+    sort_by_map = {"newest": "dd", "oldest": "da", "popular": "p"}
+
+    base_url = ""
+    if channel_url:
+        base_url = channel_url
+    elif channel_id:
+        base_url = f"https://www.youtube.com/channel/{channel_id}"
+    elif channel_username:
+        base_url = f"https://www.youtube.com/@{channel_username}"
+
+    url = "{base_url}/{content_type}?view=0&sort={sort_by}&flow=grid".format(
+        base_url=base_url,
         content_type=content_type,
         sort_by=sort_by_map[sort_by],
     )

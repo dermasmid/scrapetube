@@ -159,14 +159,37 @@ def get_search(
         yield video
 
 
+
+def get_video(
+    id: str,
+) -> dict:
+
+    """Get a single video.
+
+    Parameters:
+        id (``str``):
+            The video id from the video you want to get.
+    """
+
+    session = get_session()
+    url = f"https://www.youtube.com/watch?v={id}"
+    html = get_initial_data(session, url)
+    client = json.loads(
+        get_json_from_html(html, "INNERTUBE_CONTEXT", 2, '"}},') + '"}}'
+    )["client"]
+    session.headers["X-YouTube-Client-Name"] = "1"
+    session.headers["X-YouTube-Client-Version"] = client["clientVersion"]
+    data = json.loads(
+        get_json_from_html(html, "var ytInitialData = ", 0, "};") + "}"
+    )
+    return next(search_dict(data, "videoPrimaryInfoRenderer"))
+
+
+
 def get_videos(
     url: str, api_endpoint: str, selector: str, limit: int, sleep: int, sort_by: str = None
 ) -> Generator[dict, None, None]:
-    session = requests.Session()
-    session.headers[
-        "User-Agent"
-    ] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
-    session.headers["Accept-Language"] = "en"
+    session = get_session()
     is_first = True
     quit_it = False
     count = 0
@@ -207,6 +230,14 @@ def get_videos(
 
     session.close()
 
+
+def get_session() -> requests.Session:
+    session = requests.Session()
+    session.headers[
+        "User-Agent"
+    ] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
+    session.headers["Accept-Language"] = "en"
+    return session
 
 def get_initial_data(session: requests.Session, url: str) -> str:
     session.cookies.set("CONSENT", "YES+cb", domain=".youtube.com")

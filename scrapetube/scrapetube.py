@@ -241,8 +241,7 @@ def get_session() -> requests.Session:
 
 def get_initial_data(session: requests.Session, url: str) -> str:
     session.cookies.set("CONSENT", "YES+cb", domain=".youtube.com")
-    session.cookies.set("SOCS", "CAESEwgDEgk0ODE3Nzk3MjQaAmVuIAEaBgiA_LyaBg", domain=".youtube.com")
-    response = session.get(url)
+    response = session.get(url, params={"ucbcb":1})
 
     html = response.text
     return html

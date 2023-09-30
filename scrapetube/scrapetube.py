@@ -16,7 +16,7 @@ def get_channel(
     channel_url: str = None,
     channel_username: str = None,
     limit: int = None,
-    sleep: int = 1,
+    sleep: float = 1,
     sort_by: Literal["newest", "oldest", "popular"] = "newest",
     content_type: Literal["videos", "shorts", "streams"] = "videos",
 ) -> Generator[dict, None, None]:
@@ -187,7 +187,7 @@ def get_video(
 
 
 def get_videos(
-    url: str, api_endpoint: str, selector: str, limit: int, sleep: int, sort_by: str = None
+    url: str, api_endpoint: str, selector: str, limit: int, sleep: float, sort_by: str = None
 ) -> Generator[dict, None, None]:
     session = get_session()
     is_first = True
@@ -229,7 +229,7 @@ def get_videos(
         time.sleep(sleep)
 
     session.close()
-
+    
 
 def get_session() -> requests.Session:
     session = requests.Session()

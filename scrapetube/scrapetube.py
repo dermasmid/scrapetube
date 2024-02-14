@@ -17,6 +17,7 @@ def get_channel(
     channel_username: str = None,
     limit: int = None,
     sleep: float = 1,
+    proxies: dict = None,
     sort_by: Literal["newest", "oldest", "popular"] = "newest",
     content_type: Literal["videos", "shorts", "streams"] = "videos",
 ) -> Generator[dict, None, None]:
@@ -71,7 +72,7 @@ def get_channel(
         content_type=content_type,
     )
     api_endpoint = "https://www.youtube.com/youtubei/v1/browse"
-    videos = get_videos(url, api_endpoint, type_property_map[content_type], limit, sleep, sort_by)
+    videos = get_videos(url, api_endpoint, type_property_map[content_type], limit, sleep, proxies, sort_by)
     for video in videos:
         yield video
 
@@ -96,7 +97,7 @@ def get_playlist(
 
     url = f"https://www.youtube.com/playlist?list={playlist_id}"
     api_endpoint = "https://www.youtube.com/youtubei/v1/browse"
-    videos = get_videos(url, api_endpoint, "playlistVideoRenderer", limit, sleep)
+    videos = get_videos(url, api_endpoint, "playlistVideoRenderer", limit, sleep, proxies)
     for video in videos:
         yield video
 
@@ -153,7 +154,7 @@ def get_search(
     url = f"https://www.youtube.com/results?search_query={query}&sp={param_string}"
     api_endpoint = "https://www.youtube.com/youtubei/v1/search"
     videos = get_videos(
-        url, api_endpoint, results_type_map[results_type][1], limit, sleep
+        url, api_endpoint, results_type_map[results_type][1], limit, sleep, proxies
     )
     for video in videos:
         yield video
@@ -187,9 +188,9 @@ def get_video(
 
 
 def get_videos(
-    url: str, api_endpoint: str, selector: str, limit: int, sleep: float, sort_by: str = None
+    url: str, api_endpoint: str, selector: str, limit: int, sleep: float, proxies, sort_by: str = None
 ) -> Generator[dict, None, None]:
-    session = get_session()
+    session = get_session(proxies)
     is_first = True
     quit_it = False
     count = 0
@@ -229,10 +230,12 @@ def get_videos(
         time.sleep(sleep)
 
     session.close()
-    
 
-def get_session() -> requests.Session:
+
+def get_session(proxies) -> requests.Session:
     session = requests.Session()
+    if proxies != None:
+        session.proxies.update(proxies)
     session.headers[
         "User-Agent"
     ] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"

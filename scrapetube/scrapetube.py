@@ -1,6 +1,10 @@
 import json
+import re
 import time
-from typing import Generator
+from itertools import islice, count
+from operator import setitem
+from threading import Thread
+from typing import Generator, Optional
 
 import requests
 from typing_extensions import Literal
@@ -11,17 +15,16 @@ type_property_map = {
     "shorts": "reelItemRenderer"
 }
 
+
 def get_channel(
     channel_id: str = None,
     channel_url: str = None,
     channel_username: str = None,
     limit: int = None,
-    sleep: float = 1,
-    proxies: dict = None,
+    sleep: int = 1,
     sort_by: Literal["newest", "oldest", "popular"] = "newest",
     content_type: Literal["videos", "shorts", "streams"] = "videos",
 ) -> Generator[dict, None, None]:
-
     """Get videos for a channel.
 
     Parameters:
@@ -72,15 +75,40 @@ def get_channel(
         content_type=content_type,
     )
     api_endpoint = "https://www.youtube.com/youtubei/v1/browse"
-    videos = get_videos(url, api_endpoint, type_property_map[content_type], limit, sleep, proxies, sort_by)
+    videos = get_videos(url, api_endpoint, type_property_map[content_type], limit, sleep, sort_by)
     for video in videos:
         yield video
 
 
-def get_playlist(
-    playlist_id: str, limit: int = None, sleep: int = 1
-) -> Generator[dict, None, None]:
+def _filter_videos_in_playlist(playlist_id: str, videos: Generator[dict, None, None]) -> Generator[dict, None, None]:
+    def _filter(video: dict) -> Optional[dict]:
+        while True:
+            text = requests.get(f"https://www.youtube.com/watch?v={video['videoId']}&list={playlist_id}").text
+            try:
+                return video if int(re.findall(r'\"currentIndex\":(\d+)', text)[0]) else None
+            except IndexError:  # Don't know why
+                time.sleep(.5)
 
+    step = 20
+
+    for _ in count():
+        outputs = step * [None]
+        threads = tuple(
+            Thread(target=lambda i, v: setitem(outputs, i, _filter(v)), args=(index, video,)) for index, video in
+            enumerate(islice(videos, step)))
+        if not threads:
+            break
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
+        yield from filter(None, outputs)
+    return
+
+
+def get_playlist(
+    playlist_id: str, limit: int = None, sleep: int = 1, *, long: bool = False
+) -> Generator[dict, None, None]:
     """Get videos for a playlist.
 
     Parameters:
@@ -93,11 +121,19 @@ def get_playlist(
         sleep (``int``, *optional*):
             Seconds to sleep between API calls to youtube, in order to prevent getting blocked.
             Defaults to 1.
+
+        long (``bool``, *optional*):
+            Flag that indicates if more that 100 results should be taken - only a workaround, wating for a solution.
     """
 
     url = f"https://www.youtube.com/playlist?list={playlist_id}"
     api_endpoint = "https://www.youtube.com/youtubei/v1/browse"
-    videos = get_videos(url, api_endpoint, "playlistVideoRenderer", limit, sleep, proxies)
+    videos = get_videos(url, api_endpoint, "playlistVideoRenderer", limit, sleep)
+    if long:
+        video = next(videos)
+        yield video
+        channel_username = video["shortBylineText"]["runs"][0]["text"]
+        videos = _filter_videos_in_playlist(playlist_id, get_channel(channel_username=channel_username))
     for video in videos:
         yield video
 
@@ -109,7 +145,6 @@ def get_search(
     sort_by: Literal["relevance", "upload_date", "view_count", "rating"] = "relevance",
     results_type: Literal["video", "channel", "playlist", "movie"] = "video",
 ) -> Generator[dict, None, None]:
-
     """Search youtube and get videos.
 
     Parameters:
@@ -154,17 +189,15 @@ def get_search(
     url = f"https://www.youtube.com/results?search_query={query}&sp={param_string}"
     api_endpoint = "https://www.youtube.com/youtubei/v1/search"
     videos = get_videos(
-        url, api_endpoint, results_type_map[results_type][1], limit, sleep, proxies
+        url, api_endpoint, results_type_map[results_type][1], limit, sleep
     )
     for video in videos:
         yield video
 
 
-
 def get_video(
     id: str,
 ) -> dict:
-
     """Get a single video.
 
     Parameters:
@@ -186,11 +219,10 @@ def get_video(
     return next(search_dict(data, "videoPrimaryInfoRenderer"))
 
 
-
 def get_videos(
-    url: str, api_endpoint: str, selector: str, limit: int, sleep: float, proxies, sort_by: str = None
+    url: str, api_endpoint: str, selector: str, limit: int, sleep: int, sort_by: str = None
 ) -> Generator[dict, None, None]:
-    session = get_session(proxies)
+    session = get_session()
     is_first = True
     quit_it = False
     count = 0
@@ -208,7 +240,7 @@ def get_videos(
             )
             next_data = get_next_data(data, sort_by)
             is_first = False
-            if sort_by and sort_by != "newest": 
+            if sort_by and sort_by != "newest":
                 continue
         else:
             data = get_ajax_data(session, api_endpoint, api_key, next_data, client)
@@ -232,19 +264,18 @@ def get_videos(
     session.close()
 
 
-def get_session(proxies) -> requests.Session:
+def get_session() -> requests.Session:
     session = requests.Session()
-    if proxies != None:
-        session.proxies.update(proxies)
     session.headers[
         "User-Agent"
     ] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
     session.headers["Accept-Language"] = "en"
     return session
 
+
 def get_initial_data(session: requests.Session, url: str) -> str:
     session.cookies.set("CONSENT", "YES+cb", domain=".youtube.com")
-    response = session.get(url, params={"ucbcb":1})
+    response = session.get(url, params={"ucbcb": 1})
 
     html = response.text
     return html
@@ -274,13 +305,14 @@ def get_json_from_html(html: str, key: str, num_chars: int = 2, stop: str = '"')
 def get_next_data(data: dict, sort_by: str = None) -> dict:
     # Youtube, please don't change the order of these
     sort_by_map = {
-        "newest": 0, 
+        "newest": 0,
         "popular": 1,
-        "oldest": 2, 
+        "oldest": 2,
     }
     if sort_by and sort_by != "newest":
         endpoint = next(
-            search_dict(data, "feedFilterChipBarRenderer"), None)["contents"][sort_by_map[sort_by]]["chipCloudChipRenderer"]["navigationEndpoint"]
+            search_dict(data, "feedFilterChipBarRenderer"), None)["contents"][sort_by_map[sort_by]][
+            "chipCloudChipRenderer"]["navigationEndpoint"]
     else:
         endpoint = next(search_dict(data, "continuationEndpoint"), None)
     if not endpoint:

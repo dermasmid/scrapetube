@@ -76,8 +76,7 @@ def get_channel(
     )
     api_endpoint = "https://www.youtube.com/youtubei/v1/browse"
     videos = get_videos(url, api_endpoint, type_property_map[content_type], limit, sleep, sort_by)
-    for video in videos:
-        yield video
+    yield from videos
 
 
 def _filter_videos_in_playlist(playlist_id: str, videos: Generator[dict, None, None]) -> Generator[dict, None, None]:
@@ -134,8 +133,7 @@ def get_playlist(
         yield video
         channel_username = video["shortBylineText"]["runs"][0]["text"]
         videos = _filter_videos_in_playlist(playlist_id, get_channel(channel_username=channel_username))
-    for video in videos:
-        yield video
+    yield from videos
 
 
 def get_search(
@@ -191,8 +189,7 @@ def get_search(
     videos = get_videos(
         url, api_endpoint, results_type_map[results_type][1], limit, sleep
     )
-    for video in videos:
-        yield video
+    yield from videos
 
 
 def get_video(

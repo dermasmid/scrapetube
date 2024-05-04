@@ -232,7 +232,7 @@ def get_videos(
     session.close()
 
 
-def get_session(proxies) -> requests.Session:
+def get_session(proxies: dict = None) -> requests.Session:
     session = requests.Session()
     if proxies != None:
         session.proxies.update(proxies)

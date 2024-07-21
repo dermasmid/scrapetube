@@ -7,3 +7,4 @@ docs/_build/
 docs/source/_build
 .tox
 .env
+.DS_store

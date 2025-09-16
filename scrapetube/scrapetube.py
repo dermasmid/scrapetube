@@ -300,6 +300,22 @@ def get_next_data(data: dict, sort_by: str = None) -> dict:
         endpoint = next(search_dict(data, "continuationEndpoint"), None)
     if not endpoint:
         return None
+
+    # Sometimes, the returned endpoint has the continuation command in in the list at endpoint["commandExecutorCommand"]["commands"].
+    if "continuationCommand" not in endpoint:
+        # If that exists, iterate that looking for the continuation comand.
+        if "commandExecutorCommand" not in endpoint or "commands" not in endpoint["commandExecutorCommand"]:
+            raise Exception(f"Invalid endpoint: f{endpoint}");
+        found_continuation_endpoint = False
+        for command in endpoint["commandExecutorCommand"]["commands"]:
+            if "continuationCommand" not in command:
+                continue
+            endpoint = command
+            found_continuation_endpoint = True
+            break
+        if not found_continuation_endpoint:
+            raise Exception(f"Invalid endpoint, no command with a 'continuationCommand': f{endpoint}");
+
     next_data = {
         "token": endpoint["continuationCommand"]["token"],
         "click_params": {"clickTrackingParams": endpoint["clickTrackingParams"]},

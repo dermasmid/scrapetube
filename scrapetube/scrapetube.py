@@ -1,6 +1,6 @@
 import json
 import time
-from typing import Generator
+from typing import Generator, Optional
 
 import requests
 from typing_extensions import Literal
@@ -208,6 +208,7 @@ def get_videos(
     is_first = True
     quit_it = False
     count = 0
+    page_context = None
     while True:
         if is_first:
             html = get_initial_data(session, url)
@@ -220,6 +221,7 @@ def get_videos(
             data = json.loads(
                 get_json_from_html(html, "var ytInitialData = ", 0, "};") + "}"
             )
+            page_context = get_page_context(data)
             data = next(search_dict(data, selector_list), None)
             next_data = get_next_data(data, sort_by)
             is_first = False
@@ -228,7 +230,7 @@ def get_videos(
         else:
             data = get_ajax_data(session, api_endpoint, api_key, next_data, client)
             next_data = get_next_data(data)
-        for result in get_videos_items(data, selector_item):
+        for result in get_videos_items(data, selector_item, page_context):
             try:
                 count += 1
                 yield result
@@ -323,5 +325,215 @@ def search_dict(partial: dict, search_key: str) -> Generator[dict, None, None]:
                 stack.append(value)
 
 
-def get_videos_items(data: dict, selector: str) -> Generator[dict, None, None]:
-    return search_dict(data, selector)
+def get_page_context(data: dict) -> Optional[dict]:
+    metadata = next(search_dict(data, "channelMetadataRenderer"), None)
+    if not isinstance(metadata, dict):
+        return None
+
+    owner_url = None
+    owner_urls = metadata.get("ownerUrls")
+    if isinstance(owner_urls, list) and owner_urls:
+        owner_url = owner_urls[0]
+
+    canonical_base_url = None
+    if isinstance(owner_url, str) and owner_url.startswith("https://www.youtube.com"):
+        canonical_base_url = owner_url.replace("https://www.youtube.com", "", 1)
+
+    return {
+        "channel_id": metadata.get("externalId"),
+        "channel_title": metadata.get("title"),
+        "canonical_base_url": canonical_base_url,
+    }
+
+
+def _make_text_runs(text: str) -> dict:
+    if not text:
+        return {"runs": []}
+    return {"runs": [{"text": text}]}
+
+
+def _make_byline_text(channel_title: str, channel_id: str = None, canonical_base_url: str = None) -> dict:
+    if not channel_title:
+        return {"runs": []}
+
+    navigation_endpoint = {}
+    if channel_id:
+        navigation_endpoint = {
+            "commandMetadata": {
+                "webCommandMetadata": {
+                    "url": canonical_base_url or f"/channel/{channel_id}",
+                    "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                    "rootVe": 9662,
+                }
+            },
+            "browseEndpoint": {
+                "browseId": channel_id,
+            },
+        }
+        if canonical_base_url:
+            navigation_endpoint["browseEndpoint"]["canonicalBaseUrl"] = canonical_base_url
+
+    run = {"text": channel_title}
+    if navigation_endpoint:
+        run["navigationEndpoint"] = navigation_endpoint
+    return {"runs": [run]}
+
+
+def _lockup_metadata_parts(lockup: dict) -> list:
+    try:
+        rows = (
+            lockup.get("metadata", {})
+            .get("lockupMetadataViewModel", {})
+            .get("metadata", {})
+            .get("contentMetadataViewModel", {})
+            .get("metadataRows", [])
+        )
+        parts = []
+        for row in rows:
+            for part in row.get("metadataParts", []):
+                text = part.get("text", {}).get("content")
+                if text:
+                    parts.append(text)
+        return parts
+    except (TypeError, KeyError, AttributeError):
+        return []
+
+
+def _lockup_duration_text(lockup: dict) -> str:
+    try:
+        overlays = (
+            lockup.get("contentImage", {})
+            .get("thumbnailViewModel", {})
+            .get("overlays", [])
+        )
+        for overlay in overlays:
+            bottom_overlay = overlay.get("thumbnailBottomOverlayViewModel")
+            if not bottom_overlay:
+                continue
+            for badge in bottom_overlay.get("badges", []):
+                badge_view_model = badge.get("thumbnailBadgeViewModel")
+                if badge_view_model and badge_view_model.get("text"):
+                    return badge_view_model["text"]
+    except (TypeError, KeyError, AttributeError):
+        pass
+    return ""
+
+
+def _lockup_view_count_text(lockup: dict) -> str:
+    parts = _lockup_metadata_parts(lockup)
+    return parts[0] if parts else ""
+
+
+def _lockup_published_time_text(lockup: dict) -> str:
+    parts = _lockup_metadata_parts(lockup)
+    return parts[1] if len(parts) > 1 else ""
+
+
+def _lockup_thumbnail(lockup: dict) -> dict:
+    sources = (
+        lockup.get("contentImage", {})
+        .get("thumbnailViewModel", {})
+        .get("image", {})
+        .get("sources", [])
+    )
+    thumbnails = []
+    for source in sources:
+        if not isinstance(source, dict):
+            continue
+        url = source.get("url")
+        if not url:
+            continue
+        thumbnails.append(
+            {
+                "url": url,
+                "width": source.get("width"),
+                "height": source.get("height"),
+            }
+        )
+    return {"thumbnails": thumbnails}
+
+
+def _lockup_navigation_endpoint(lockup: dict) -> dict:
+    return (
+        lockup.get("rendererContext", {})
+        .get("commandContext", {})
+        .get("onTap", {})
+        .get("innertubeCommand", {})
+    )
+
+
+def _lockup_to_video_renderer(lockup: dict, page_context: Optional[dict] = None) -> Optional[dict]:
+    if not isinstance(lockup, dict):
+        return None
+
+    content_type = lockup.get("contentType") or ""
+    if "VIDEO" not in content_type:
+        return None
+
+    video_id = lockup.get("contentId")
+    if not video_id:
+        return None
+
+    title_content = (
+        lockup.get("metadata", {})
+        .get("lockupMetadataViewModel", {})
+        .get("title", {})
+        .get("content")
+    )
+    title = _make_text_runs(title_content)
+
+    view_count_text = _lockup_view_count_text(lockup)
+    published_time_text = _lockup_published_time_text(lockup)
+    duration_text = _lockup_duration_text(lockup)
+    navigation_endpoint = _lockup_navigation_endpoint(lockup)
+
+    channel_title = None
+    channel_id = None
+    canonical_base_url = None
+    if page_context:
+        channel_title = page_context.get("channel_title")
+        channel_id = page_context.get("channel_id")
+        canonical_base_url = page_context.get("canonical_base_url")
+
+    byline = _make_byline_text(channel_title, channel_id, canonical_base_url)
+
+    video = {
+        "videoId": video_id,
+        "title": title,
+        "thumbnail": _lockup_thumbnail(lockup),
+    }
+    if navigation_endpoint:
+        video["navigationEndpoint"] = navigation_endpoint
+    if view_count_text:
+        video["viewCountText"] = {"simpleText": view_count_text}
+    if published_time_text:
+        video["publishedTimeText"] = {"simpleText": published_time_text}
+    if duration_text:
+        video["lengthText"] = {"simpleText": duration_text}
+    if byline.get("runs"):
+        video["longBylineText"] = byline
+        video["shortBylineText"] = byline
+        video["ownerText"] = byline
+    return video
+
+
+def get_videos_items(data: dict, selector: str, page_context: Optional[dict] = None) -> Generator[dict, None, None]:
+    if selector != "videoRenderer":
+        yield from search_dict(data, selector)
+        return
+
+    seen = set()
+    for item in search_dict(data, "videoRenderer"):
+        video_id = item.get("videoId") if isinstance(item, dict) else None
+        if video_id and video_id not in seen:
+            seen.add(video_id)
+            yield item
+
+    for lockup in search_dict(data, "lockupViewModel"):
+        converted = _lockup_to_video_renderer(lockup, page_context)
+        if not converted:
+            continue
+        video_id = converted["videoId"]
+        if video_id not in seen:
+            seen.add(video_id)
+            yield converted

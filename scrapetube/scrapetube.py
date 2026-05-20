@@ -6,7 +6,7 @@ import requests
 from typing_extensions import Literal
 
 type_property_map = {
-    "videos": "videoRenderer",
+    "videos": "lockupViewModel",
     "streams": "videoRenderer",
     "shorts": "reelWatchEndpoint"
 }
@@ -76,7 +76,7 @@ def get_channel(
         content_type=content_type,
     )
     api_endpoint = "https://www.youtube.com/youtubei/v1/browse"
-    videos = get_videos(url, api_endpoint, "contents", type_property_map[content_type], limit, sleep, proxies, sort_by)
+    videos = get_videos(url, api_endpoint, "twoColumnBrowseResultsRenderer", type_property_map[content_type], limit, sleep, proxies, sort_by)
     for video in videos:
         yield video
 
@@ -195,9 +195,9 @@ def get_video(
     session.headers["X-YouTube-Client-Name"] = "1"
     session.headers["X-YouTube-Client-Version"] = client["clientVersion"]
     data = json.loads(
-        get_json_from_html(html, "var ytInitialData = ", 0, "};") + "}"
+        get_json_from_html(html, "var ytInitialPlayerResponse = ", 0, "};") + "}"
     )
-    return next(search_dict(data, "videoPrimaryInfoRenderer"))
+    return next(search_dict(data, "videoDetails"))
 
 
 
